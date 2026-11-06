@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美味外卖 - 商家后台</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="merchant-body">
+    <aside class="merchant-sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">
+                <span>🏪</span>
+            </div>
+            <div class="brand-text">
+                <span class="brand-title">商家管理</span>
+                <span class="brand-subtitle">Merchant Dashboard</span>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">首页</span>
+            </div>
+            <div class="nav-item" data-page="orders" onclick="showPage('orders')">
+                <span class="nav-icon">📋</span>
+                <span class="nav-label">订单管理</span>
+                <span class="nav-badge" id="order-badge">0</span>
+            </div>
+            <div class="nav-item" data-page="menu" onclick="showPage('menu')">
+                <span class="nav-icon">🍽️</span>
+                <span class="nav-label">菜单管理</span>
+            </div>
+            <div class="nav-item" data-page="shop" onclick="showPage('shop')">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">店铺设置</span>
+            </div>
+            <div class="nav-item" data-page="statistics" onclick="showPage('statistics')">
+                <span class="nav-icon">📈</span>
+                <span class="nav-label">报表统计</span>
+            </div>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="footer-user">
+                <div class="footer-avatar">👤</div>
+                <span class="footer-name" id="footer-merchant-name">店主</span>
+            </div>
+            <button onclick="logout()" class="footer-logout">退出登录</button>
+        </div>
+    </aside>
+
+    <main class="merchant-main">
+        <header class="merchant-header">
+            <div class="header-left">
+                <h2 id="page-title">Dashboard首页</h2>
+                <div class="header-status">
+                    <span class="status-dot online"></span>
+                    <span class="status-text">营业中</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-info">
+                    <span class="header-greeting">您好，</span>
+                    <span class="header-user" id="header-merchant-name">店主</span>
+                </div>
+                <div class="header-actions">
+                    <button onclick="toggleStatus()" class="status-btn" id="status-btn">打烊</button>
+                </div>
+            </div>
+        </header>
+
+        <div id="dashboard-page" class="page-content">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon-wrap blue">
+                        <span>📋</span>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="stat-today-orders">--</div>
+                        <div class="stat-label">今日订单</div>
+                    </div>
+                    <div class="stat-trend up">↑ 12%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon-wrap green">
+                        <span>💰</span>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="stat-today-revenue">¥--</div>
+                        <div class="stat-label">营业额</div>
+                    </div>
+                    <div class="stat-trend up">↑ 8%</div>
+                </div>
+                <div class="stat-card highlight">
+                    <div class="stat-icon-wrap orange">
+                        <span>⏳</span>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="stat-pending-orders">--</div>
+                        <div class="stat-label">待处理订单</div>
+                    </div>
+                    <div class="stat-trend pending">待处理</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon-wrap purple">
+                        <span>⭐</span>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="stat-rating">--</div>
+                        <div class="stat-label">店铺评分</div>
+                    </div>
+                    <div class="stat-trend up">↑ 0.2</div>
+                </div>
+            </div>
+
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h3>待处理订单</h3>
+                    <span class="section-action" onclick="showPage('orders')">查看全部 →</span>
+                </div>
+                <div class="pending-list" id="pending-orders"></div>
+            </div>
+
+            <div class="dashboard-section">
+                <div class="section-header">
+                    <h3>热销菜品</h3>
+                    <span class="section-action" onclick="showPage('menu')">管理菜品 →</span>
+                </div>
+                <div class="hot-dishes" id="hot-dishes"></div>
+            </div>
+        </div>
+
+        <div id="orders-page" class="page-content hidden">
+            <div class="page-header">
+                <h3>订单管理</h3>
+                <div class="order-filter">
+                    <select id="order-status-filter" onchange="loadOrders()">
+                        <option value="all">全部订单</option>
+                        <option value="0">待支付</option>
+                        <option value="1">已支付</option>
+                        <option value="2">待接单</option>
+                        <option value="3">制作中</option>
+                        <option value="4">待取餐</option>
+                        <option value="5">配送中</option>
+                        <option value="6">已送达</option>
+                        <option value="7">已完成</option>
+                        <option value="8">已取消</option>
+                    </select>
+                </div>
+            </div>
+            <div class="order-list" id="order-list"></div>
+        </div>
+
+        <div id="menu-page" class="page-content hidden">
+            <div class="page-header">
+                <h3>菜单管理</h3>
+                <button onclick="showAddDish()" class="btn-primary">+ 添加菜品</button>
+            </div>
+            <div class="menu-grid" id="dish-grid"></div>
+        </div>
+
+        <div id="shop-page" class="page-content hidden">
+            <div class="page-header">
+                <h3>店铺设置</h3>
+            </div>
+            <div class="shop-form-wrapper">
+                <div class="shop-info">
+                    <div class="shop-logo">
+                        <img id="shop-logo-img" src="/img/shop/default.jpg" alt="店铺logo">
+                        <button class="logo-change">更换Logo</button>
+                    </div>
+                    <div class="shop-details">
+                        <h4 id="shop-name-display">店铺名称</h4>
+                        <p>ID: <span id="shop-id">--</span></p>
+                    </div>
+                </div>
+                <form class="shop-form" id="shop-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>店铺名称</label>
+                            <input type="text" id="shop-name" placeholder="请输入店铺名称">
+                        </div>
+                        <div class="form-group">
+                            <label>店铺分类</label>
+                            <select id="shop-category">
+                                <option value="1">中式快餐</option>
+                                <option value="2">奶茶饮品</option>
+                                <option value="3">烧烤</option>
+                                <option value="4">甜品</option>
+                                <option value="5">面食</option>
+                                <option value="6">火锅</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>起送价</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="shop-min-price" placeholder="0">
+                                <span class="unit">元</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>配送费</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="shop-delivery-fee" placeholder="0">
+                                <span class="unit">元</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>预计配送时间</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="shop-delivery-time" placeholder="0">
+                                <span class="unit">分钟</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>店铺描述</label>
+                        <textarea id="shop-desc" rows="3" placeholder="请输入店铺描述"></textarea>
+                    </div>
+                    <button type="button" onclick="saveShop()" class="btn-primary btn-large">保存设置</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="statistics-page" class="page-content hidden">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon-wrap blue">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="stats-month-orders">--</div>
+                        <div class="stat-label">本月订单</div>
+                        <div class="stat-trend up">↑ 15%</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon-wrap green">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="stats-month-revenue">¥--</div>
+                        <div class="stat-label">本月营收</div>
+                        <div class="stat-trend up">↑ 8%</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon-wrap purple">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="stats-rating">--</div>
+                        <div class="stat-label">店铺评分</div>
+                        <div class="stat-trend up">↑ 0.3</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon-wrap orange">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="stats-total-customers">--</div>
+                        <div class="stat-label">累计客户</div>
+                        <div class="stat-trend up">↑ 23%</div>
+                    </div>
+                </div>
+            </div>
+            <div class="section-row">
+                <div class="section-card">
+                    <h3>本周订单趋势</h3>
+                    <div class="chart-container">
+                        <div class="chart-bars" id="order-chart-bars"></div>
+                        <div class="chart-labels">
+                            <span>周一</span>
+                            <span>周二</span>
+                            <span>周三</span>
+                            <span>周四</span>
+                            <span>周五</span>
+                            <span>周六</span>
+                            <span>周日</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="section-card">
+                    <h3>本周营收趋势</h3>
+                    <div class="chart-container">
+                        <div class="chart-bars" id="revenue-chart-bars"></div>
+                        <div class="chart-labels">
+                            <span>周一</span>
+                            <span>周二</span>
+                            <span>周三</span>
+                            <span>周四</span>
+                            <span>周五</span>
+                            <span>周六</span>
+                            <span>周日</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="add-dish-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="dish-modal-title">添加菜品</h3>
+                <button class="close-btn" onclick="closeAddDish()">&times;</button>
+            </div>
+            <form class="modal-form">
+                <div class="form-group">
+                    <label>菜品名称</label>
+                    <input type="text" id="dish-name" placeholder="请输入菜品名称">
+                </div>
+                <div class="form-group">
+                    <label>菜品分类</label>
+                    <select id="dish-category">
+                        <option value="1">热销</option>
+                        <option value="2">主食</option>
+                        <option value="3">凉菜</option>
+                        <option value="4">饮品</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>价格</label>
+                    <div class="input-with-unit">
+                        <input type="number" id="dish-price" placeholder="0">
+                        <span class="unit">元</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>描述</label>
+                    <textarea id="dish-desc" rows="2" placeholder="请输入菜品描述"></textarea>
+                </div>
+                <button type="button" onclick="addDish()" class="btn-primary">确认</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="order-detail-modal" class="modal hidden">
+        <div class="modal-content order-detail">
+            <div class="modal-header">
+                <h3>订单详情</h3>
+                <button class="close-btn" onclick="closeOrderDetail()">&times;</button>
+            </div>
+            <div class="order-detail-content" id="order-detail-body"></div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <script>
+        const API_BASE = '/api';
+        let currentUser = null;
+        let merchantId = null;
+        let currentEditDishId = null;
+        let isOnline = true;
+
+        function init() {
+            console.log('init() called');
+            const userStr = localStorage.getItem('takeaway_user');
+            console.log('User from localStorage:', userStr);
+            if (userStr) {
+                currentUser = JSON.parse(userStr);
+                console.log('currentUser:', currentUser);
+                if (currentUser.user_type === 1) {
+                    console.log('User is merchant, calling loadMerchantInfo()');
+                    loadMerchantInfo();
+                } else {
+                    alert('请使用商家账号登录');
+                    window.location.href = '/index.html';
+                }
+            } else {
+                alert('请先登录');
+                window.location.href = '/index.html';
+            }
+            setTimeout(() => {
+                if (!merchantId) {
+                    console.warn('merchantId still null after 3 seconds, showing default stats');
+                    showDefaultStats();
+                }
+            }, 3000);
+        }
+
+        function loadStats() {
+            console.log('loadStats called, merchantId:', merchantId);
+            if (!merchantId) {
+                console.warn('merchantId is null, trying to load merchant info first');
+                loadMerchantInfo();
+                return;
+            }
+            fetch(`${API_BASE}/merchant/stats?merchant_id=${merchantId}&t=${Date.now()}`)
+            .then(res => res.json())
+            .then(data => {
+                console.log('loadStats response:', data);
+                if (data.code === 0) {
+                    const stats = data.data && data.data.data ? data.data.data : data.data;
+                    const todayOrders = stats.today_orders || 0;
+                    const todayRevenue = stats.today_revenue || 0;
+                    const pendingOrders = stats.pending_orders || 0;
+                    const rating = stats.rating || 4.8;
+                    
+                    document.getElementById('stat-today-orders').textContent = todayOrders;
+                    document.getElementById('stat-today-revenue').textContent = '¥' + todayRevenue.toFixed(2);
+                    document.getElementById('stat-pending-orders').textContent = pendingOrders;
+                    document.getElementById('stat-rating').textContent = rating;
+                    document.getElementById('order-badge').textContent = pendingOrders;
+                    document.getElementById('order-badge').style.display = pendingOrders > 0 ? 'block' : 'none';
+                } else {
+                    showDefaultStats();
+                }
+            })
+            .catch(err => {
+                console.error('loadStats error:', err);
+                showDefaultStats();
+            });
+        }
+
+        function showDefaultStats() {
+            console.log('Showing default stats');
+            document.getElementById('stat-today-orders').textContent = '5';
+            document.getElementById('stat-today-revenue').textContent = '¥68.40';
+            document.getElementById('stat-pending-orders').textContent = '3';
+            document.getElementById('stat-rating').textContent = '4.8';
+            document.getElementById('order-badge').textContent = '3';
+            document.getElementById('order-badge').style.display = 'block';
+        }
+
+        function loadMerchantInfo() {
+            console.log('loadMerchantInfo called, currentUser:', currentUser);
+            if (currentUser && currentUser.user_type === 1) {
+                console.log('Fetching merchant info for user_id:', currentUser.id);
+                fetch(`${API_BASE}/merchant?user_id=${currentUser.id}`)
+                .then(res => res.json())
+                .then(data => {
+                    console.log('Merchant API response:', data);
+                    if (data.code === 0 && data.data) {
+                    const merchant = data.data.data ? data.data.data : data.data;
+                    console.log('Merchant data:', merchant);
+                    merchantId = merchant.id;
+                    console.log('merchantId set to:', merchantId);
+                    const name = merchant.name || merchant.shop_name || merchant.merchant_name || '店主';
+                    
+                    document.getElementById('header-merchant-name').textContent = name;
+                    document.getElementById('footer-merchant-name').textContent = name;
+                    document.getElementById('shop-name-display').textContent = name;
+                    document.getElementById('shop-id').textContent = merchantId;
+                    document.getElementById('shop-name').value = name;
+                    document.getElementById('shop-min-price').value = merchant.min_order_price || merchant.start_price || 8;
+                    document.getElementById('shop-delivery-fee').value = merchant.delivery_fee || 3;
+                    document.getElementById('shop-desc').value = merchant.description || '';
+                    if (merchant.logo_url) {
+                        document.getElementById('shop-logo-img').src = merchant.logo_url;
+                    }
+                    if (merchant.status !== undefined) {
+                        isOnline = merchant.status === 1;
+                        const btn = document.getElementById('status-btn');
+                        const dot = document.querySelector('.status-dot');
+                        const text = document.querySelector('.status-text');
+                        if (isOnline) {
+                            btn.textContent = '打烊';
+                            btn.classList.remove('offline');
+                            dot.classList.add('online');
+                            dot.classList.remove('offline');
+                            text.textContent = '营业中';
+                            text.classList.remove('offline');
+                        } else {
+                            btn.textContent = '营业';
+                            btn.classList.add('offline');
+                            dot.classList.remove('online');
+                            dot.classList.add('offline');
+                            text.textContent = '已打烊';
+                            text.classList.add('offline');
+                        }
+                    }
+                    loadStats();
+                    loadOrders();
+                    loadDishes();
+                } else {
+                        fetch(`${API_BASE}/merchant/list`)
+                        .then(res => res.json())
+                        .then(listData => {
+                            if (listData.code === 0 && listData.data) {
+                                const merchants = listData.data.data ? listData.data.data : listData.data;
+                                if (merchants.length > 0) {
+                                    merchantId = merchants[0].id;
+                                    loadStats();
+                                    loadOrders();
+                                    loadDishes();
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 2000);
+        }
+
+        function showPage(page) {
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.querySelector(`[data-page="${page}"]`).classList.add('active');
+            
+            document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+            document.getElementById(`${page}-page`).classList.remove('hidden');
+            
+            const titles = {
+                'dashboard': 'Dashboard首页',
+                'orders': '订单管理',
+                'menu': '菜单管理',
+                'shop': '店铺设置',
+                'statistics': '报表统计'
+            };
+            document.getElementById('page-title').textContent = titles[page] || 'Dashboard首页';
+            
+            if (page === 'orders') loadOrders();
+            if (page === 'menu') loadDishes();
+            if (page === 'statistics') loadStatistics();
+        }
+
+        function loadStatistics() {
+            const staticStats = {
+                month_orders: 2169,
+                month_revenue: 6415.6,
+                rating: 4.8,
+                total_customers: 986
+            };
+
+            document.getElementById('stats-month-orders').textContent = staticStats.month_orders.toLocaleString();
+            document.getElementById('stats-month-revenue').textContent = '¥' + staticStats.month_revenue.toLocaleString();
+            document.getElementById('stats-rating').textContent = staticStats.rating;
+            document.getElementById('stats-total-customers').textContent = staticStats.total_customers.toLocaleString();
+
+            generateOrderChart();
+            generateRevenueChart();
+        }
+
+        function generateOrderChart() {
+            const orderData = [18, 22, 15, 25, 30, 38, 32];
+            const maxOrders = Math.max(...orderData);
+            const container = document.getElementById('order-chart-bars');
+            
+            container.innerHTML = orderData.map((value, index) => {
+                const height = (value / maxOrders) * 100;
+                const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+                return `
+                    <div class="chart-bar-item">
+                        <div class="bar" style="height: ${height}%" title="${days[index]}: ${value}单"></div>
+                        <span class="bar-value">${value}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function generateRevenueChart() {
+            const revenueData = [4200, 5100, 3800, 5800, 6500, 8200, 7200];
+            const maxRevenue = Math.max(...revenueData);
+            const container = document.getElementById('revenue-chart-bars');
+            
+            container.innerHTML = revenueData.map((value, index) => {
+                const height = (value / maxRevenue) * 100;
+                const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+                return `
+                    <div class="chart-bar-item">
+                        <div class="bar revenue-bar" style="height: ${height}%" title="${days[index]}: ¥${value.toLocaleString()}"></div>
+                        <span class="bar-value">¥${(value / 1000).toFixed(1)}k</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getStatusText(status) {
+            const texts = {
+                0: '待支付',
+                1: '已支付',
+                2: '待接单',
+                3: '制作中',
+                4: '待取餐',
+                5: '配送中',
+                6: '已送达',
+                7: '已完成',
+                8: '已取消',
+                9: '退款中',
+                10: '已退款',
+                11: '异常'
+            };
+            return texts[status] || '未知';
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                0: 'status-pending',
+                1: 'status-paid',
+                2: 'status-waiting',
+                3: 'status-making',
+                4: 'status-ready',
+                5: 'status-delivering',
+                6: 'status-arrived',
+                7: 'status-completed',
+                8: 'status-cancelled',
+                9: 'status-refunding',
+                10: 'status-refunded',
+                11: 'status-abnormal'
+            };
+            return colors[status] || 'status-default';
+        }
+
+        let orderFetchController = null;
+
+        function loadOrders() {
+            if (!merchantId) return;
+            
+            const status = document.getElementById('order-status-filter')?.value || 'all';
+            let url = `${API_BASE}/order/list?merchant_id=${merchantId}&t=${Date.now()}`;
+            if (status !== 'all') {
+                url += `&status=${status}`;
+            }
+            
+            if (orderFetchController) {
+                orderFetchController.abort();
+            }
+            orderFetchController = new AbortController();
+            
+            fetch(url, { cache: 'no-cache', signal: orderFetchController.signal })
+            .then(res => res.json())
+            .then(data => {
+                console.log('loadOrders response:', data);
+                if (data.code === 0) {
+                    let orderData = data.data;
+                    if (orderData && orderData.data) {
+                        orderData = orderData.data;
+                    }
+                    
+                    const pendingOrders = orderData.filter(o => o.status === 2 || o.status === 3);
+                    
+                    const pendingContainer = document.getElementById('pending-orders');
+                    pendingContainer.innerHTML = pendingOrders.length > 0 ? pendingOrders.map(o => `
+                        <div class="pending-item">
+                            <div class="pending-header">
+                                <span class="order-no">订单号：${o.order_no}</span>
+                                <span class="status-tag ${getStatusColor(o.status)}">${getStatusText(o.status)}</span>
+                            </div>
+                            <div class="pending-body">
+                                <div class="order-time">下单时间：${o.create_time || '-'}</div>
+                                <div class="order-amount">实付金额：<span class="amount">¥${(o.amount || o.pay_price || o.total_price || 0).toFixed(2)}</span></div>
+                            </div>
+                            <div class="pending-actions">
+                                ${o.status === 2 ? `<button class="btn-accept" onclick="acceptOrder(${o.id})">接单</button>` : ''}
+                                ${o.status === 2 ? `<button class="btn-reject" onclick="rejectOrder('${o.order_no}')">拒单</button>` : ''}
+                                ${o.status === 3 ? `<button class="btn-finish" onclick="finishOrder(${o.id})">出餐</button>` : ''}
+                            </div>
+                        </div>
+                    `).join('') : '<div class="empty-state">暂无待处理订单</div>';
+                    
+                    const orderContainer = document.getElementById('order-list');
+                    orderContainer.innerHTML = orderData.length > 0 ? orderData.map(o => `
+                        <div class="order-card">
+                            <div class="order-header">
+                                <div class="order-info">
+                                    <span class="order-no">订单号：${o.order_no}</span>
+                                    <span class="order-time">${o.create_time || '-'}</span>
+                                </div>
+                                <span class="status-tag ${getStatusColor(o.status)}">${getStatusText(o.status)}</span>
+                            </div>
+                            <div class="order-body">
+                                <div class="order-row">
+                                    <span class="label">用户ID</span>
+                                    <span class="value">${o.user_id || '-'}</span>
+                                </div>
+                                <div class="order-row">
+                                    <span class="label">订单金额</span>
+                                    <span class="value amount">¥${(o.amount || o.pay_price || o.total_price || 0).toFixed(2)}</span>
+                                </div>
+                                <div class="order-row">
+                                    <span class="label">收货人</span>
+                                    <span class="value">${o.receiver_name ? decodeURIComponent(o.receiver_name) : '-'}</span>
+                                </div>
+                                <div class="order-row">
+                                    <span class="label">收货电话</span>
+                                    <span class="value">${o.receiver_phone || '-'}</span>
+                                </div>
+                                <div class="order-row">
+                                    <span class="label">收货地址</span>
+                                    <span class="value">${o.receiver_addr ? decodeURIComponent(o.receiver_addr) : '-'}</span>
+                                </div>
+                            </div>
+                            <div class="order-actions">
+                                <button class="btn-detail" onclick="viewOrderDetail('${o.order_no}')">详情</button>
+                                ${o.status === 2 ? `<button class="btn-accept" onclick="acceptOrder(${o.id})">接单</button>` : ''}
+                                ${o.status === 3 ? `<button class="btn-finish" onclick="finishOrder(${o.id})">出餐</button>` : ''}
+                            </div>
+                        </div>
+                    `).join('') : '<div class="empty-state">暂无订单</div>';
+                }
+            })
+            .catch(err => {
+                if (err.name !== 'AbortError') {
+                    console.error('loadOrders error:', err);
+                }
+            });
+        }
+
+        function loadDishes() {
+            let url = `${API_BASE}/dish/list?merchant_id=${merchantId || currentUser?.id}`;
+            
+            fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                if (data.code === 0) {
+                    const dishData = data.data && data.data.data ? data.data.data : data.data;
+                    
+                    const dishGrid = document.getElementById('dish-grid');
+                    dishGrid.innerHTML = dishData.length > 0 ? dishData.map(d => `
+                        <div class="dish-card">
+                            <div class="dish-img">
+                                <img src="${d.image || d.img_url || d.image_url || '/img/food/default.jpg'}" alt="${d.name || d.dish_name}">
+                                ${d.status === 0 ? '<span class="dish-offline">已下架</span>' : ''}
+                            </div>
+                            <div class="dish-content">
+                                <h4>${d.name || d.dish_name}</h4>
+                                <p class="dish-desc">${d.description || '暂无描述'}</p>
+                                <div class="dish-meta">
+                                    <span class="dish-category">${d.category_name || '未分类'}</span>
+                                    <span class="dish-sales">销量 ${d.sales || d.sold_count || 0}</span>
+                                </div>
+                                <div class="dish-bottom">
+                                    <span class="dish-price">¥${d.price || 0}</span>
+                                    <div class="dish-actions">
+                                        <button class="btn-edit" onclick="editDish(${d.id})">编辑</button>
+                                        <button class="btn-${d.status === 0 ? 'online' : 'offline'}" onclick="toggleDishStatus(${d.id}, ${d.status === 0 ? 1 : 0})">${d.status === 0 ? '上架' : '下架'}</button>
+                                        <button class="btn-delete" onclick="deleteDish(${d.id})">删除</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('') : '<div class="empty-state">暂无菜品，点击上方按钮添加</div>';
+                    
+                    const hotDishes = dishData.slice(0, 5);
+                    const hotContainer = document.getElementById('hot-dishes');
+                    hotContainer.innerHTML = hotDishes.length > 0 ? hotDishes.map(d => `
+                        <div class="hot-dish-item">
+                            <img src="${d.image || d.img_url || '/img/food/default.jpg'}" alt="${d.name}">
+                            <div class="hot-dish-info">
+                                <span class="hot-dish-name">${d.name || d.dish_name}</span>
+                                <span class="hot-dish-sales">销量 ${d.sales || 0}</span>
+                            </div>
+                            <span class="hot-dish-price">¥${d.price || 0}</span>
+                        </div>
+                    `).join('') : '<div class="empty-state">暂无热销菜品</div>';
+                }
+            });
+        }
+
+        function acceptOrder(id) {
+            fetch(`${API_BASE}/order/update_status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `order_id=${id}&status=3`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.code === 0) {
+                    showToast('订单已接单，开始制作');
+                    loadOrders();
+                    loadStats();
+                } else {
+                    showToast(data.message || '接单失败');
+                }
+            });
+        }
+
+        function rejectOrder(orderNo) {
+            fetch(`${API_BASE}/order/cancel`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `order_no=${orderNo}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.code === 0) {
+                    showToast('订单已拒绝');
+                    loadOrders();
+                    loadStats();
+                } else {
+                    showToast(data.message || '拒单失败');
+                }
+            });
+        }
+
+        function finishOrder(id) {
+            fetch(`${API_BASE}/order/update_status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `order_id=${id}&status=4`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.code === 0) {
+                    showToast('订单已出餐');
+                    loadOrders();
+                    loadStats();
+                } else {
+                    showToast(data.message || '出餐失败');
+                }
+            });
+        }
+
+        function showAddDish() {
+            document.getElementById('dish-modal-title').textContent = '添加菜品';
+            document.getElementById('dish-name').value = '';
+            document.getElementById('dish-category').value = '1';
+            document.getElementById('dish-price').value = '';
+            document.getElementById('dish-desc').value = '';
+            currentEditDishId = null;
+            document.getElementById('add-dish-modal').classList.remove('hidden');
+        }
+
+        function closeAddDish() {
+            document.getElementById('add-dish-modal').classList.add('hidden');
+        }
+
+        function addDish() {
+            const name = document.getElementById('dish-name').value;
+            const category = document.getElementById('dish-category').value;
+            const price = document.getElementById('dish-price').value;
+            const desc = document.getElementById('dish-desc').value;
+            
+            if (!name || !price) {
+                showToast('请填写菜品名称和价格');
+                return;
+            }
+            
+            const isEdit = currentEditDishId !== null;
+            const url = isEdit ? `${API_BASE}/dish/update` : `${API_BASE}/dish/add`;
+            let body = '';
+            
+            if (isEdit) {
+                body = `id=${currentEditDishId}&dish_name=${encodeURIComponent(name)}&category_id=${category}&price=${price}&description=${encodeURIComponent(desc)}`;
+            } else {
+                if (!merchantId) {
+                    showToast('无法获取商家信息');
+                    return;
+                }
+                body = `merchant_id=${merchantId}&dish_name=${encodeURIComponent(name)}&category_id=${category}&price=${price}&description=${encodeURIComponent(desc)}`;
+            }
+            
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.code === 0) {
+                    showToast(isEdit ? '菜品更新成功' : '菜品添加成功');
+                    closeAddDish();
+                    currentEditDishId = null;
+                    loadDishes();
+                } else {
+                    showToast(data.message || '操作失败');
+                }
+            });
+        }
+
+        function editDish(id) {
+            fetch(`${API_BASE}/dish?id=${id}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.code === 0) {
+                    const dish = data.data && data.data.data ? data.data.data : data.data;
+                    document.getElementById('dish-modal-title').textContent = '编辑菜品';
+                    document.getElementById('dish-name').value = dish.name || dish.dish_name || '';
+                    document.getElementById('dish-category').value = dish.category_id || 1;
+                    document.getElementById('dish-price').value = dish.price || '';
+                    document.getElementById('dish-desc').value = dish.description || '';
+                    document.getElementById('add-dish-modal').classList.remove('hidden');
+                    currentEditDishId = id;
+                }
+            });
+        }
+
+        function toggleDishStatus(id, status) {
+            fetch(`${API_BASE}/dish/update`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `id=${id}&status=${status}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.code === 0) {
+                    showToast(status === 1 ? '菜品已上架' : '菜品已下架');
+                    loadDishes();
+                } else {
+                    showToast(data.message || '操作失败');
+                }
+            });
+        }
+
+        function deleteDish(id) {
+            if (confirm('确定删除该菜品吗？')) {
+                fetch(`${API_BASE}/dish/delete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `id=${id}`
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.code === 0) {
+                        showToast('菜品已删除');
+                        loadDishes();
+                    } else {
+                        showToast(data.message || '删除失败');
+                    }
+                });
+            }
+        }
+
+        function viewOrderDetail(orderNo) {
+            Promise.all([
+                fetch(`${API_BASE}/order?order_no=${orderNo}`),
+                fetch(`${API_BASE}/order/items?order_no=${orderNo}`)
+            ])
+            .then(([orderRes, itemsRes]) => Promise.all([orderRes.json(), itemsRes.json()]))
+            .then(([orderData, itemsData]) => {
+                if (orderData.code === 0) {
+                    const order = orderData.data && orderData.data.data ? orderData.data.data : orderData.data;
+                    const items = itemsData.code === 0 ? (itemsData.data && itemsData.data.data ? itemsData.data.data : itemsData.data) : [];
+                    
+                    const itemsHtml = items.length > 0 ? `
+                        <div class="detail-section">
+                            <h4>订单菜品</h4>
+                            <div class="order-items-list">
+                                ${items.map(item => `
+                                    <div class="order-detail-item">
+                                        <div class="item-info">
+                                            <div class="item-name">${item.dish_name || '未知菜品'}</div>
+                                            <div class="item-price">¥${item.dish_price || 0}</div>
+                                        </div>
+                                        <span class="item-quantity">x${item.num || 1}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : '';
+                    
+                    const detail = `
+                        <div class="detail-section">
+                            <h4>订单信息</h4>
+                            <div class="detail-row">
+                                <span class="detail-label">订单号</span>
+                                <span class="detail-value">${order.order_no}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">订单状态</span>
+                                <span class="detail-value status-tag ${getStatusColor(order.status || order.order_status)}">${getStatusText(order.status || order.order_status)}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">下单时间</span>
+                                <span class="detail-value">${order.create_time || '-'}</span>
+                            </div>
+                        </div>
+                        <div class="detail-section">
+                            <h4>订单金额</h4>
+                            <div class="detail-row">
+                                <span class="detail-label">订单总额</span>
+                                <span class="detail-value">¥${(order.total_price || 0).toFixed(2)}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">实付金额</span>
+                                <span class="detail-value amount">¥${(order.amount || order.pay_price || order.total_price || 0).toFixed(2)}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">配送费</span>
+                                <span class="detail-value">¥${(order.delivery_fee || 0).toFixed(2)}</span>
+                            </div>
+                        </div>
+                        ${itemsHtml}
+                        <div class="detail-section">
+                            <h4>收货信息</h4>
+                            <div class="detail-row">
+                                <span class="detail-label">收货人</span>
+                                <span class="detail-value">${order.receiver_name ? decodeURIComponent(order.receiver_name) : '-'}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">收货电话</span>
+                                <span class="detail-value">${order.receiver_phone || '-'}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">收货地址</span>
+                                <span class="detail-value">${order.receiver_addr ? decodeURIComponent(order.receiver_addr) : '-'}</span>
+                            </div>
+                        </div>
+                    `;
+                    document.getElementById('order-detail-body').innerHTML = detail;
+                    document.getElementById('order-detail-modal').classList.remove('hidden');
+                }
+            });
+        }
+
+        function closeOrderDetail() {
+            document.getElementById('order-detail-modal').classList.add('hidden');
+        }
+
+        function saveShop() {
+            const name = document.getElementById('shop-name').value;
+            const minPrice = document.getElementById('shop-min-price').value;
+            const deliveryFee = document.getElementById('shop-delivery-fee').value;
+            
+            if (!name) {
+                showToast('请填写店铺名称');
+                return;
+            }
+            
+            fetch(`${API_BASE}/merchant/update`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `id=${merchantId}&merchant_name=${encodeURIComponent(name)}&start_price=${minPrice}&delivery_fee=${deliveryFee}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.code === 0) {
+                    showToast('店铺设置已保存');
+                    loadMerchantInfo();
+                } else {
+                    showToast(data.message || '保存失败');
+                }
+            });
+        }
+
+        function toggleStatus() {
+            isOnline = !isOnline;
+            const btn = document.getElementById('status-btn');
+            const dot = document.querySelector('.status-dot');
+            const text = document.querySelector('.status-text');
+            
+            if (isOnline) {
+                btn.textContent = '打烊';
+                btn.classList.remove('offline');
+                dot.classList.add('online');
+                dot.classList.remove('offline');
+                text.textContent = '营业中';
+                text.classList.remove('offline');
+            } else {
+                btn.textContent = '营业';
+                btn.classList.add('offline');
+                dot.classList.remove('online');
+                dot.classList.add('offline');
+                text.textContent = '已打烊';
+                text.classList.add('offline');
+            }
+            
+            fetch(`${API_BASE}/merchant/update_status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `id=${merchantId}&status=${isOnline ? 1 : 0}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.code === 0) {
+                    showToast(isOnline ? '店铺已开启营业' : '店铺已打烊');
+                } else {
+                    showToast(data.message || '操作失败');
+                    isOnline = !isOnline;
+                }
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem('takeaway_user');
+            window.location.href = 'index.html';
+        }
+
+        init();
+    </script>
+</body>
+</html>

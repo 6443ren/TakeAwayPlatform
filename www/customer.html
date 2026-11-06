@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美味外卖 - 用户端</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="customer-body">
+    <header class="customer-header">
+        <div class="header-top">
+            <div class="location">📍 洪山区华中师范大学 </div>
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="搜索美食">
+                <button onclick="searchDishes()">🔍</button>
+            </div>
+            <div class="user-avatar" onclick="showProfile()">
+                <div class="avatar-circle">
+                    <span class="avatar-icon">👤</span>
+                </div>
+                <span class="user-name" id="header-user-name">登录</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="customer-main">
+        <div id="home-page" class="page-view">
+            <div class="banner">
+                <div class="banner-content">
+                    <h2>新店开业满30减15</h2>
+                    <p>夏日饮品第二杯半价</p>
+                </div>
+            </div>
+            <div class="category-tabs" id="category-tabs">
+                <div class="tab active" data-category="hot">🔥 热销</div>
+                <div class="tab" data-category="breakfast">🌅 早餐</div>
+                <div class="tab" data-category="lunch">🍱 午餐</div>
+                <div class="tab" data-category="drink">🧋 奶茶饮品</div>
+                <div class="tab" data-category="fast">🍟 快餐</div>
+                <div class="tab" data-category="barbecue">🍢 烧烤</div>
+                <div class="tab" data-category="dessert">🍰 甜品</div>
+            </div>
+            <div id="merchant-list" class="merchant-list"></div>
+        </div>
+        
+
+        <div id="cart-page" class="page-view hidden">
+            <div id="cart-empty" class="empty-state">
+                <span>🛒</span>
+                <p>购物车空空如也</p>
+                <button onclick="showHome()" class="btn-primary">去逛逛</button>
+            </div>
+            <div id="cart-content" class="cart-content hidden">
+                <div id="cart-items"></div>
+                <div class="cart-summary">
+                    <div class="cart-total">
+                        <span>合计：</span>
+                        <span class="total-price">¥<span id="cart-total-amount">0</span></span>
+                    </div>
+                    <button onclick="checkoutFromCart()" class="btn-primary">结算</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="orders-page" class="page-view hidden">
+            <div class="order-tabs">
+                <div class="order-tab active" data-status="all" onclick="filterOrders('all', this)">全部</div>
+                <div class="order-tab" data-status="0" onclick="filterOrders('0', this)">待支付</div>
+                <div class="order-tab" data-status="1" onclick="filterOrders('1', this)">已支付</div>
+                <div class="order-tab" data-status="2" onclick="filterOrders('2', this)">待接单</div>
+                <div class="order-tab" data-status="3" onclick="filterOrders('3', this)">制作中</div>
+                <div class="order-tab" data-status="5" onclick="filterOrders('5', this)">配送中</div>
+                <div class="order-tab" data-status="7" onclick="filterOrders('7', this)">已完成</div>
+                <div class="order-tab" data-status="8" onclick="filterOrders('8', this)">已取消</div>
+            </div>
+            <div id="order-list" class="order-list"></div>
+        </div>
+    </main>
+
+    <nav class="customer-nav">
+        <div class="nav-item active" onclick="showHome()">
+            <span>🏠</span>
+            <span>首页</span>
+        </div>
+        
+        <div class="nav-item" onclick="showCart()">
+            <span>🛒</span>
+            <span>购物车</span>
+            <span id="cart-count" class="cart-count">0</span>
+        </div>
+        <div class="nav-item" onclick="showOrders()">
+            <span>📋</span>
+            <span>订单</span>
+        </div>
+    </nav>
+
+    <div id="shop-modal" class="modal hidden">
+        <div class="modal-content shop-modal-content">
+            <div class="modal-header">
+                <h3 id="shop-name">店铺名称</h3>
+                <button class="close-btn" onclick="closeShop()">&times;</button>
+            </div>
+            <div class="shop-categories" id="shop-categories"></div>
+            <div id="shop-dishes" class="shop-dishes"></div>
+            <div class="shop-footer">
+                <div class="shop-cart-info">
+                    <span>共 <span id="shop-cart-count">0</span> 件</span>
+                    <span>合计 ¥<span id="shop-cart-total">0</span></span>
+                </div>
+                <button onclick="checkout()" class="btn-primary">去结算</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="order-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>确认订单</h3>
+                <button class="close-btn" onclick="closeOrder()">&times;</button>
+            </div>
+            <div class="order-form">
+                <div class="form-group">
+                    <label>收货地址：</label>
+                    <input type="text" id="order-address" placeholder="请输入收货地址">
+                </div>
+                <div class="form-group">
+                    <label>联系电话：</label>
+                    <input type="text" id="order-phone" placeholder="请输入联系电话">
+                </div>
+                <div class="form-group">
+                    <label>订单备注：</label>
+                    <textarea id="order-remark" placeholder="请输入备注信息"></textarea>
+                </div>
+                <div class="order-summary">
+                    <h4>订单详情</h4>
+                    <div id="order-items"></div>
+                    <div class="order-total">
+                        <span>实付金额：</span>
+                        <span class="total-price">¥<span id="final-total">0</span></span>
+                    </div>
+                </div>
+                <button onclick="submitOrder()" class="btn-primary">提交订单</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cancel-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>取消订单</h3>
+                <button class="close-btn" onclick="closeCancel()">&times;</button>
+            </div>
+            <div class="cancel-content">
+                <p class="cancel-icon">⚠️</p>
+                <p class="cancel-message">确定要取消此订单吗？</p>
+                <p class="cancel-order-no">订单号：<span id="cancel-order-no"></span></p>
+                <div class="cancel-reasons">
+                    <h4>取消原因（可选）：</h4>
+                    <div class="reason-options">
+                        <label><input type="radio" name="cancel-reason" value="1"> 不想买了</label>
+                        <label><input type="radio" name="cancel-reason" value="2"> 选错商品/规格</label>
+                        <label><input type="radio" name="cancel-reason" value="3"> 价格太贵</label>
+                        <label><input type="radio" name="cancel-reason" value="4"> 其他原因</label>
+                    </div>
+                </div>
+                <div class="cancel-actions">
+                    <button onclick="closeCancel()" class="btn-secondary">取消</button>
+                    <button onclick="confirmCancel()" class="btn-danger">确认取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="pay-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>支付订单</h3>
+                <button class="close-btn" onclick="closePay()">&times;</button>
+            </div>
+            <div class="pay-form">
+                <div class="pay-order-info">
+                    <div>订单号：<span id="pay-order-no"></span></div>
+                    <div>支付金额：<span class="total-price">¥<span id="pay-amount">0</span></span></div>
+                </div>
+                <div class="pay-methods">
+                    <div class="pay-method active" onclick="selectPayMethod('alipay', this)">
+                        <span>📱</span>
+                        <span>支付宝</span>
+                        <span class="check">✓</span>
+                    </div>
+                    <div class="pay-method" onclick="selectPayMethod('wechat', this)">
+                        <span>💬</span>
+                        <span>微信支付</span>
+                        <span class="check">✓</span>
+                    </div>
+                </div>
+                <button onclick="doPay()" class="btn-primary">确认支付</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="order-detail-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>订单详情</h3>
+                <button class="close-btn" onclick="closeOrderDetail()">&times;</button>
+            </div>
+            <div id="order-detail-content"></div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <script>
+        const API_BASE = '/api';
+        let currentUser = null;
+        let cart = [];
+        let currentShopId = null;
+        let currentDishes = [];
+        let allMerchants = [];
+        let currentPayOrder = null;
+        let selectedPayMethod = 'alipay';
+        let orderFetchController = null;
+        let currentCancelOrderNo = '';
+
+        function updateHeaderUser() {
+            const userNameEl = document.getElementById('header-user-name');
+            const avatarIconEl = document.querySelector('.avatar-icon');
+            if (currentUser && currentUser.user_name) {
+                userNameEl.textContent = currentUser.user_name;
+                avatarIconEl.textContent = currentUser.user_name.charAt(0).toUpperCase();
+            } else {
+                userNameEl.textContent = '登录';
+                avatarIconEl.textContent = '👤';
+            }
+        }
+
+        function init() {
+            const userStr = localStorage.getItem('takeaway_user');
+            if (userStr) {
+                currentUser = JSON.parse(userStr);
+            }
+            
+            updateHeaderUser();
+            
+            const cartStr = localStorage.getItem('takeaway_cart');
+            if (cartStr) {
+                cart = JSON.parse(cartStr);
+            }
+            
+            loadMerchants();
+            updateCartCount();
+            
+            document.querySelectorAll('.category-tabs .tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.category-tabs .tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    filterByCategory(this.dataset.category);
+                });
+            });
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 2000);
+        }
+
+        function loadMerchants() {
+            fetch(`${API_BASE}/merchant/list`)
+            .then(res => {
+                if (!res.ok) throw new Error('网络请求失败');
+                return res.json();
+            })
+            .then(data => {
+                if (data.code === 0) {
+                    const merchantList = data.data && data.data.data ? data.data.data : data.data;
+                    allMerchants = merchantList;
+                    renderMerchants(merchantList);
+                } else {
+                    showToast('加载商家失败：' + data.message);
+                }
+            })
+            .catch(err => {
+                showToast('加载商家失败：' + err.message);
+            });
+        }
+
+        function renderMerchants(merchants) {
+            const list = document.getElementById('merchant-list');
+            list.innerHTML = merchants.map(m => `
+                <div class="merchant-card" onclick="openShop(${m.id})">
+                    <div class="merchant-img">
+                        <img src="${m.image && m.image.length > 0 ? m.image : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22%3E%3Crect fill=%22%23f5f5f5%22 width=%22100%25%22 height=%22100%25%2F%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2212%22%3E%E5%BA%97%E9%93%BA%E5%9B%BE%E7%89%87%3C%2Ftext%3E%3C%2Fsvg%3E'}" alt="${m.name}">
+                    </div>
+                    <div class="merchant-info">
+                        <h3>${m.name}</h3>
+                        <div class="merchant-meta">
+                            <span class="rating">⭐ ${m.rating || 4.8}</span>
+                            <span>月售 ${m.month_sales || 2000}+</span>
+                        </div>
+                        <div class="merchant-bottom">
+                            <span>起送 ¥${m.min_order_price || 10}</span>
+                            <span>配送费 ¥${m.delivery_fee || 3}</span>
+                            <span class="delivery-time">配送 ${m.delivery_time || 25}分钟</span>
+                        </div>
+                    </div>
+                    <button class="enter-btn">进入商家</button>
+                </div>
+            `).join('');
+        }
+
+        function openShop(id) {
+            currentShopId = id;
+            console.log('openShop called with id:', id);
+            fetch(`${API_BASE}/merchant?id=${id}`)
+            .then(res => {
+                console.log('merchant API status:', res.status);
+                return res.json();
+            })
+            .then(data => {
+                console.log('merchant API response:', data);
+                if (data.code === 0) {
+                    const merchant = data.data && data.data.data ? data.data.data : data.data;
+                    console.log('merchant data:', merchant);
+                    document.getElementById('shop-name').textContent = merchant.name || merchant.shop_name || '店铺';
+                    
+                    fetch(`${API_BASE}/category/list?merchant_id=${id}`)
+                    .then(res => res.json())
+                    .then(catData => {
+                        console.log('category API response:', catData);
+                        if (catData.code === 0) {
+                            const cats = catData.data && catData.data.data ? catData.data.data : catData.data;
+                            renderShopCategories(cats);
+                        } else {
+                            renderShopCategories([]);
+                        }
+                    })
+                    .catch(err => {
+                        console.error('category API error:', err);
+                        renderShopCategories([]);
+                    });
+                    
+                    fetch(`${API_BASE}/dish/list?merchant_id=${id}`)
+                    .then(res => {
+                        console.log('dish API status:', res.status);
+                        return res.json();
+                    })
+                    .then(data => {
+                        console.log('dish API response:', data);
+                        if (data.code === 0) {
+                            const dishes = data.data && data.data.data ? data.data.data : data.data;
+                            console.log('dishes count:', dishes ? dishes.length : 0);
+                            currentDishes = dishes;
+                            renderShopDishes(dishes);
+                            document.getElementById('shop-modal').classList.remove('hidden');
+                            console.log('shop-modal shown');
+                        } else {
+                            showToast('加载菜品失败：' + (data.message || '未知错误'));
+                        }
+                    })
+                    .catch(err => {
+                        console.error('dish API error:', err);
+                        showToast('加载菜品失败：' + err.message);
+                    });
+                } else {
+                    showToast('获取商家信息失败：' + (data.message || '未知错误'));
+                }
+            })
+            .catch(err => {
+                console.error('merchant API error:', err);
+                showToast('获取商家信息失败：' + err.message);
+            });
+        }
+
+        function renderShopCategories(categories) {
+            const container = document.getElementById('shop-categories');
+            container.innerHTML = `<div class="shop-cat active" data-cat="all">全部</div>` + 
+                categories.map(c => `<div class="shop-cat" data-cat="${c.id}">${c.name}</div>`).join('');
+            
+            document.querySelectorAll('.shop-cat').forEach(cat => {
+                cat.addEventListener('click', function() {
+                    document.querySelectorAll('.shop-cat').forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    filterShopDishes(this.dataset.cat);
+                });
+            });
+        }
+
+        function filterShopDishes(catId) {
+            fetch(`${API_BASE}/dish/list?merchant_id=${currentShopId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.code === 0) {
+                    let dishes = data.data && data.data.data ? data.data.data : data.data;
+                    if (catId !== 'all') {
+                        dishes = dishes.filter(d => d.category_id == catId);
+                    }
+                    currentDishes = dishes;
+                    renderShopDishes(dishes);
+                }
+            });
+        }
+
+        function renderShopDishes(dishes) {
+            const container = document.getElementById('shop-dishes');
+            container.innerHTML = dishes.map(d => {
+                const item = cart.find(c => c.dish_id === d.id && c.shop_id === currentShopId);
+                const count = item ? item.count : 0;
+                const dishName = d.dish_name || d.name || '未知菜品';
+                const dishPrice = d.price || 0;
+                return `
+                    <div class="dish-item">
+                        <img src="${(d.image_url || d.image || '').replace(/\?.*$/, '')}?v=${Date.now()}" alt="${dishName}" class="dish-img" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22%3E%3Crect fill=%22%23f5f5f5%22 width=%22100%25%22 height=%22100%25%2F%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2210%22%3E%E8%8F%9C%E5%93%81%3C%2Ftext%3E%3C%2Fsvg%3E'; this.onerror=null;">
+                        <div class="dish-info">
+                            <h4>${dishName}</h4>
+                            <p class="dish-desc">${d.description ? decodeURIComponent(d.description) : ''}</p>
+                            <div class="dish-bottom">
+                                <span class="price">¥${dishPrice.toFixed(2)}</span>
+                                <span class="sales">月售${d.sold_count || d.sales || 0}</span>
+                            </div>
+                        </div>
+                        <div class="dish-actions">
+                            ${count > 0 ? `
+                                <button onclick="updateCart(${d.id}, -1)">-</button>
+                                <span>${count}</span>
+                            ` : ''}
+                            <button onclick="updateCart(${d.id}, 1)" class="add-btn">+</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            updateShopCart();
+        }
+
+        function updateCart(dishId, delta) {
+            const idx = cart.findIndex(c => c.dish_id === dishId && c.shop_id === currentShopId);
+            if (idx >= 0) {
+                cart[idx].count += delta;
+                if (cart[idx].count <= 0) {
+                    cart.splice(idx, 1);
+                }
+            } else {
+                let dishName = '';
+                let dishPrice = 0;
+                let dishImage = '';
+                let shopName = '';
+                if (currentDishes && currentDishes.length > 0) {
+                    const dish = currentDishes.find(d => d.id == dishId);
+                    if (dish) {
+                        dishName = dish.dish_name || dish.name || '';
+                        dishPrice = parseFloat(dish.price) || 0;
+                        dishImage = dish.image_url || dish.image || '';
+                    }
+                }
+                const merchant = allMerchants.find(m => m.id == currentShopId);
+                if (merchant) {
+                    shopName = merchant.name;
+                }
+                cart.push({ 
+                    shop_id: currentShopId, 
+                    shop_name: shopName,
+                    dish_id: dishId, 
+                    count: 1,
+                    dish_name: dishName,
+                    price: dishPrice,
+                    image: dishImage
+                });
+            }
+            updateCartCount();
+            updateShopCart();
+            localStorage.setItem('takeaway_cart', JSON.stringify(cart));
+        }
+
+        function updateCartCount() {
+            const count = cart.reduce((sum, item) => sum + item.count, 0);
+            const badge = document.getElementById('cart-count');
+            badge.textContent = count;
+            if (count > 0) {
+                badge.classList.add('active');
+            } else {
+                badge.classList.remove('active');
+            }
+        }
+
+        function updateShopCart() {
+            const shopItems = cart.filter(c => c.shop_id === currentShopId);
+            const count = shopItems.reduce((sum, item) => sum + item.count, 0);
+            const total = shopItems.reduce((sum, item) => sum + (item.price || 0) * item.count, 0);
+            document.getElementById('shop-cart-count').textContent = count;
+            document.getElementById('shop-cart-total').textContent = total.toFixed(2);
+        }
+
+        function closeShop() {
+            document.getElementById('shop-modal').classList.add('hidden');
+        }
+
+        function checkout() {
+            const shopItems = cart.filter(c => c.shop_id === currentShopId);
+            if (shopItems.length === 0) {
+                showToast('购物车为空');
+                return;
+            }
+            document.getElementById('order-modal').classList.remove('hidden');
+            renderOrderItems(shopItems);
+        }
+
+        function renderOrderItems(items) {
+            const container = document.getElementById('order-items');
+            let total = 0;
+            
+            container.innerHTML = items.map(item => {
+                const itemTotal = (item.price || 0) * item.count;
+                total += itemTotal;
+                return `<div>${item.dish_name || '未知菜品'} x${item.count} = ¥${itemTotal.toFixed(2)}</div>`;
+            }).join('');
+            document.getElementById('final-total').textContent = total.toFixed(2);
+        }
+
+        function submitOrder() {
+            const address = document.getElementById('order-address').value;
+            const phone = document.getElementById('order-phone').value;
+            if (!address || !phone) {
+                showToast('请填写收货地址和联系电话');
+                return;
+            }
+
+            const shopItems = cart.filter(c => c.shop_id === currentShopId);
+            if (shopItems.length === 0) {
+                showToast('购物车为空');
+                return;
+            }
+
+            let totalPrice = 0;
+            let bodyParams = `user_id=${currentUser.id}&merchant_id=${currentShopId}&receiver_name=${encodeURIComponent(currentUser.user_name || '用户')}&receiver_phone=${encodeURIComponent(phone)}&receiver_addr=${encodeURIComponent(address)}&item_count=${shopItems.length}`;
+            
+            shopItems.forEach((item, index) => {
+                const price = item.price || 0;
+                const name = item.dish_name || '未知菜品';
+                totalPrice += price * item.count;
+                bodyParams += `&dish_id_${index}=${item.dish_id}&dish_name_${index}=${encodeURIComponent(name)}&dish_price_${index}=${price}&num_${index}=${item.count}`;
+            });
+
+            bodyParams += `&total_price=${totalPrice}&pay_price=${totalPrice}&delivery_fee=3`;
+
+            fetch(`${API_BASE}/order/create`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: bodyParams
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.code === 0) {
+                    const orderData = data.data && data.data.data ? data.data.data : data.data;
+                    currentPayOrder = { ...orderData, amount: totalPrice, pay_price: totalPrice };
+                    
+                    cart = cart.filter(c => c.shop_id !== currentShopId);
+                    localStorage.setItem('takeaway_cart', JSON.stringify(cart));
+                    closeOrder();
+                    closeShop();
+                    updateCartCount();
+                    renderCartPage();
+                    
+                    showPay(currentPayOrder);
+                } else {
+                    showToast(data.message || '下单失败');
+                }
+            })
+            .catch(err => {
+                showToast('网络错误');
+            });
+        }
+
+        function closeOrder() {
+            document.getElementById('order-modal').classList.add('hidden');
+        }
+
+        function searchDishes() {
+            const keyword = document.getElementById('search-input').value;
+            if (!keyword) {
+                loadMerchants();
+                return;
+            }
+            fetch(`${API_BASE}/dish/list?keyword=${encodeURIComponent(keyword)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.code === 0) {
+                    const dishData = data.data && data.data.data ? data.data.data : data.data;
+                    const merchantIds = [...new Set(dishData.map(d => d.merchant_id))];
+                    const filtered = allMerchants.filter(m => merchantIds.includes(m.id));
+                    renderMerchants(filtered);
+                }
+            });
+        }
+
+        function filterByCategory(category) {
+            const categoryMap = {
+                'hot': ['老王家常菜', '甜园甜品店', '鲜香麻辣烫', '快乐炸鸡店', '老北京面馆'],
+                'breakfast': ['老北京面馆'],
+                'lunch': ['老王家常菜', '鲜香麻辣烫'],
+                'drink': ['甜园甜品店'],
+                'fast': ['快乐炸鸡店'],
+                'barbecue': ['鲜香麻辣烫'],
+                'dessert': ['甜园甜品店'],
+                'noodle': ['老北京面馆']
+            };
+            const merchantNames = categoryMap[category] || [];
+            const filtered = merchantNames.length > 0 
+                ? allMerchants.filter(m => merchantNames.includes(m.name))
+                : allMerchants;
+            renderMerchants(filtered);
+        }
+
+        function showHome() {
+            switchPage('home-page', document.querySelector('.nav-item'));
+        }
+
+        function showCart() {
+            switchPage('cart-page', document.querySelectorAll('.nav-item')[1]);
+        }
+
+        function showOrders() {
+            switchPage('orders-page', document.querySelectorAll('.nav-item')[2]);
+        }
+
+        function switchPage(pageId, navEl) {
+            document.querySelectorAll('.page-view').forEach(p => p.classList.add('hidden'));
+            document.getElementById(pageId).classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            if (navEl) {
+                navEl.classList.add('active');
+            }
+            
+            const banner = document.querySelector('.banner');
+            const categoryTabs = document.querySelector('.category-tabs');
+            const customerMain = document.querySelector('.customer-main');
+            
+            if (pageId === 'home-page') {
+                if (banner) banner.classList.remove('hidden');
+                if (categoryTabs) categoryTabs.classList.remove('hidden');
+                customerMain.classList.add('has-banner');
+            } else {
+                if (banner) banner.classList.add('hidden');
+                if (categoryTabs) categoryTabs.classList.add('hidden');
+                customerMain.classList.remove('has-banner');
+            }
+            
+            if (pageId === 'cart-page') {
+                renderCartPage();
+            } else if (pageId === 'orders-page') {
+                const activeTab = document.querySelector('.order-tab.active');
+                const status = activeTab ? activeTab.dataset.status : 'all';
+                loadOrders(status);
+            }
+        }
+
+        function renderCartPage() {
+            const emptyState = document.getElementById('cart-empty');
+            const cartContent = document.getElementById('cart-content');
+            const cartItems = document.getElementById('cart-items');
+            
+            if (!cart || cart.length === 0) {
+                emptyState.classList.remove('hidden');
+                cartContent.classList.add('hidden');
+                cartItems.innerHTML = '';
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            cartContent.classList.remove('hidden');
+            
+            let total = 0;
+            const shopGroups = {};
+            cart.forEach(item => {
+                if (!shopGroups[item.shop_id]) {
+                    shopGroups[item.shop_id] = [];
+                }
+                shopGroups[item.shop_id].push(item);
+            });
+            
+            const shopIds = Object.keys(shopGroups);
+            let html = '';
+            
+            shopIds.forEach(shopId => {
+                const items = shopGroups[shopId];
+                const firstItem = items[0];
+                const shopName = firstItem.shop_name || (allMerchants.find(m => m.id == shopId)?.name) || `店铺 ${shopId}`;
+                html += `<div class="cart-shop"><h4>🏪 ${shopName}</h4>`;
+                
+                items.forEach(item => {
+                    const itemTotal = parseFloat(item.price) * item.count;
+                    total += itemTotal;
+                    html += `
+                        <div class="cart-item">
+                            <img src="${item.image || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2260%22 height=%2260%22%3E%3Crect fill=%22%23f5f5f5%22 width=%22100%25%22 height=%22100%25%2F%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%228%22%3E%E8%8F%9C%E5%93%81%3C%2Ftext%3E%3C%2Fsvg%3E'}" class="cart-item-img">
+                            <div class="cart-item-info">
+                                <h5>${item.dish_name || '未知菜品'}</h5>
+                                <span class="cart-item-price">¥${parseFloat(item.price).toFixed(2)}</span>
+                            </div>
+                            <div class="cart-item-actions">
+                                <button onclick="updateCartFromCart(${item.dish_id}, ${shopId}, -1)">-</button>
+                                <span>${item.count}</span>
+                                <button onclick="updateCartFromCart(${item.dish_id}, ${shopId}, 1)">+</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            });
+            
+            cartItems.innerHTML = html;
+            document.getElementById('cart-total-amount').textContent = total.toFixed(2);
+        }
+
+        function updateCartFromCart(dishId, shopId, delta) {
+            const idx = cart.findIndex(c => c.dish_id === dishId && c.shop_id === shopId);
+            if (idx >= 0) {
+                cart[idx].count += delta;
+                if (cart[idx].count <= 0) {
+                    cart.splice(idx, 1);
+                }
+            }
+            updateCartCount();
+            renderCartPage();
+        }
+
+        function checkoutFromCart() {
+            if (cart.length === 0) {
+                showToast('购物车为空');
+                return;
+            }
+            const firstShopId = cart[0].shop_id;
+            currentShopId = firstShopId;
+            checkout();
+        }
+
+        function loadOrders(status = 'all') {
+            if (!currentUser) {
+                showToast('请先登录');
+                return;
+            }
+            if (orderFetchController) {
+                orderFetchController.abort();
+            }
+            orderFetchController = new AbortController();
+            
+            let url = `${API_BASE}/order/list?user_id=${currentUser.id}&t=${Date.now()}`;
+            if (status !== 'all') {
+                url += `&status=${status}`;
+            }
+            
+            fetch(url, { cache: 'no-cache', signal: orderFetchController.signal })
+            .then(res => res.json())
+            .then(data => {
+                console.log('loadOrders response:', data);
+                if (data.code === 0) {
+                    let orderList = data.data;
+                    if (orderList && orderList.data) {
+                        orderList = orderList.data;
+                    }
+                    renderOrders(orderList);
+                }
+            })
+            .catch(err => {
+                if (err.name !== 'AbortError') {
+                    console.error('loadOrders error:', err);
+                }
+            });
+        }
+
+        function filterOrders(status, el) {
+            document.querySelectorAll('.order-tab').forEach(t => t.classList.remove('active'));
+            if (el) {
+                el.classList.add('active');
+            }
+            loadOrders(status);
+        }
+
+        function renderOrders(orders) {
+            const list = document.getElementById('order-list');
+            if (!orders || orders.length === 0) {
+                list.innerHTML = `<div class="empty-state"><span>📋</span><p>暂无订单</p></div>`;
+                return;
+            }
+            
+            list.innerHTML = orders.map(o => {
+                const status = o.order_status !== undefined ? o.order_status : o.status;
+                const merchant = allMerchants.find(m => m.id == o.merchant_id);
+                const shopName = merchant ? merchant.name : '未知店铺';
+                return `
+                <div class="order-card" onclick="viewOrderDetail('${o.order_no}')">
+                    <div class="order-header">
+                        <span class="order-no">订单号：${o.order_no}</span>
+                        <span class="order-status">${getStatusText(status)}</span>
+                    </div>
+                    <div class="order-body">
+                        <div class="order-merchant">🏪 ${shopName}</div>
+                        <div class="order-amount">合计：¥${o.amount || o.pay_price || o.total_price || 0}</div>
+                    </div>
+                    <div class="order-footer">
+                        <span class="order-time">下单时间：${o.create_time || '-'}</span>
+                        <div class="order-actions">
+                            ${status === 0 ? `<button class="btn-action" onclick="showPay({order_no: '${o.order_no}', pay_price: ${o.amount || o.pay_price || o.total_price || 0}}); event.stopPropagation();">去支付</button>` : ''}
+                            ${status === 0 || status === 1 || status === 2 ? `<button class="btn-action" onclick="cancelOrder('${o.order_no}'); event.stopPropagation();">取消订单</button>` : ''}
+                            ${status === 4 ? `<button class="btn-action" onclick="showToast('订单已完成'); event.stopPropagation();">确认收货</button>` : ''}
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function getStatusText(status) {
+            const texts = {
+                0: '待支付',
+                1: '已支付',
+                2: '待接单',
+                3: '制作中',
+                4: '待取餐',
+                5: '配送中',
+                6: '已送达',
+                7: '已完成',
+                8: '已取消',
+                9: '退款中',
+                10: '已退款',
+                11: '异常'
+            };
+            return texts[status] || '未知';
+        }
+
+        function decodeName(name) {
+            try {
+                return decodeURIComponent(name);
+            } catch (e) {
+                return name;
+            }
+        }
+
+        function getOrderItemsPreview(items) {
+            if (!items || items.length === 0) {
+                return '查看详情';
+            }
+            const names = items.map(i => decodeName(i.dish_name || '未知商品')).slice(0, 2);
+            const remaining = items.length > 2 ? `等${items.length}件商品` : '';
+            return `${names.join('、')}${remaining}`;
+        }
+
+        function cancelOrder(orderNo) {
+            currentCancelOrderNo = orderNo;
+            document.getElementById('cancel-order-no').textContent = orderNo;
+            document.getElementById('cancel-modal').classList.remove('hidden');
+        }
+
+        function closeCancel() {
+            document.getElementById('cancel-modal').classList.add('hidden');
+            currentCancelOrderNo = '';
+        }
+
+        function confirmCancel() {
+            if (!currentCancelOrderNo) {
+                console.log('confirmCancel: currentCancelOrderNo is empty');
+                return;
+            }
+            console.log('confirmCancel called, order_no:', currentCancelOrderNo);
+            console.log('API_BASE:', API_BASE);
+            console.log('Full URL:', `${API_BASE}/order/cancel`);
+            
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', `${API_BASE}/order/cancel`);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onload = function() {
+                console.log('XHR status:', xhr.status);
+                console.log('XHR response:', xhr.responseText);
+                try {
+                    const data = JSON.parse(xhr.responseText);
+                    console.log('Parsed data:', data);
+                    console.log('data.code:', data.code);
+                    if (data.code === 0) {
+                        showToast('订单已取消');
+                        closeCancel();
+                        loadOrders();
+                    } else {
+                        showToast(data.message || '取消失败');
+                    }
+                } catch (e) {
+                    console.error('JSON parse error:', e);
+                    showToast('取消失败，请重试');
+                }
+            };
+            xhr.onerror = function() {
+                console.error('XHR error');
+                showToast('取消失败，请重试');
+            };
+            xhr.send(`order_no=${currentCancelOrderNo}`);
+        }
+
+        function showPay(order) {
+            currentPayOrder = order;
+            document.getElementById('pay-order-no').textContent = order.order_no;
+            document.getElementById('pay-amount').textContent = order.amount || order.pay_price || 0;
+            document.getElementById('pay-modal').classList.remove('hidden');
+        }
+
+        function closePay() {
+            document.getElementById('pay-modal').classList.add('hidden');
+        }
+
+        function selectPayMethod(method, el) {
+            selectedPayMethod = method;
+            document.querySelectorAll('.pay-method').forEach(m => m.classList.remove('active'));
+            if (el) {
+                el.classList.add('active');
+            }
+        }
+
+        function doPay() {
+            if (!currentPayOrder) {
+                showToast('订单信息错误');
+                return;
+            }
+            
+            showToast('正在支付...');
+            
+            setTimeout(() => {
+                fetch(`${API_BASE}/order/pay`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `order_no=${currentPayOrder.order_no}`
+                })
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('HTTP error ' + res.status);
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    if (data && data.code === 0) {
+                        showToast('支付成功');
+                        closePay();
+                        const paidTab = document.querySelector('.order-tab[data-status="1"]');
+                        if (paidTab) {
+                            filterOrders('1', paidTab);
+                        } else {
+                            showOrders();
+                        }
+                    } else {
+                        showToast(data && data.message ? data.message : '支付失败');
+                    }
+                })
+                .catch(err => {
+                    console.error('支付失败:', err);
+                    showToast('支付失败: ' + err.message);
+                });
+            }, 1500);
+        }
+
+        function viewOrderDetail(orderNo) {
+            document.getElementById('order-detail-content').innerHTML = '<div class="loading">加载中...</div>';
+            document.getElementById('order-detail-modal').classList.remove('hidden');
+            
+            Promise.all([
+                fetch(`${API_BASE}/order?order_no=${orderNo}`).then(res => res.json()),
+                fetch(`${API_BASE}/order/items?order_no=${orderNo}`).then(res => res.json())
+            ])
+            .then(([orderData, itemsData]) => {
+                if (orderData.code === 0) {
+                    const order = orderData.data && orderData.data.data ? orderData.data.data : orderData.data;
+                    const items = itemsData.code === 0 ? (itemsData.data && itemsData.data.data ? itemsData.data.data : itemsData.data) : [];
+                    renderOrderDetail(order, items);
+                }
+            });
+        }
+
+        function renderOrderDetail(order, items) {
+            const content = document.getElementById('order-detail-content');
+            const status = order.order_status !== undefined ? order.order_status : order.status;
+            const merchant = allMerchants.find(m => m.id == order.merchant_id);
+            const shopName = merchant ? merchant.name : '未知店铺';
+            
+            const receiverName = order.receiver_name ? decodeURIComponent(order.receiver_name) : (currentUser && currentUser.user_name ? currentUser.user_name : '用户');
+            const receiverAddr = order.receiver_addr ? decodeURIComponent(order.receiver_addr) : '-';
+            
+            content.innerHTML = `
+                <div class="order-detail">
+                    <div class="detail-section">
+                        <h4>订单信息</h4>
+                        <div class="detail-row"><span>订单号</span><span>${order.order_no}</span></div>
+                        <div class="detail-row"><span>订单状态</span><span>${getStatusText(status)}</span></div>
+                        <div class="detail-row"><span>下单时间</span><span>${order.create_time || '-'}</span></div>
+                        <div class="detail-row"><span>更新时间</span><span>${order.update_time || '-'}</span></div>
+                    </div>
+                    <div class="detail-section">
+                        <h4>店铺信息</h4>
+                        <div class="detail-row"><span>店铺名称</span><span>🏪 ${shopName}</span></div>
+                    </div>
+                    <div class="detail-section">
+                        <h4>收货信息</h4>
+                        <div class="detail-row"><span>收货人</span><span>${receiverName}</span></div>
+                        <div class="detail-row"><span>联系电话</span><span>${order.receiver_phone || '-'}</span></div>
+                        <div class="detail-row"><span>收货地址</span><span>${receiverAddr}</span></div>
+                    </div>
+                    <div class="detail-section">
+                        <h4>商品信息</h4>
+                        <div class="order-items-list">
+                            ${renderOrderDetailItems(items)}
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <h4>支付信息</h4>
+                        <div class="detail-row"><span>订单总额</span><span>¥${order.total_price || 0}</span></div>
+                        <div class="detail-row"><span>实付金额</span><span>¥${order.pay_price || order.amount || 0}</span></div>
+                        <div class="detail-row"><span>配送费</span><span>¥${order.delivery_fee || 0}</span></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderOrderDetailItems(items) {
+            if (!items || items.length === 0) {
+                return '<div class="empty-state">暂无商品</div>';
+            }
+            return items.map(item => `
+                <div class="order-detail-item">
+                    <div class="item-info">
+                        <div class="item-name">${decodeName(item.dish_name || '未知商品')}</div>
+                        <div class="item-price">¥${item.dish_price || 0}</div>
+                    </div>
+                    <div class="item-quantity">x${item.num || item.count || 1}</div>
+                </div>
+            `).join('');
+        }
+
+        function closeOrderDetail() {
+            document.getElementById('order-detail-modal').classList.add('hidden');
+        }
+
+        function showProfile() {
+            if (!currentUser) {
+                window.location.href = 'index.html';
+            } else {
+                if (confirm(`当前用户：${currentUser.user_name}\n\n是否退出登录？`)) {
+                    logout();
+                }
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('takeaway_user');
+            localStorage.removeItem('takeaway_cart');
+            window.location.href = 'index.html';
+        }
+
+        init();
+    </script>
+</body>
+</html>
